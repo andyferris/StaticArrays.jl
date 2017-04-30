@@ -17,6 +17,13 @@ end
 
 Base.IndexStyle{T<:StaticArray}(::Type{T}) = IndexLinear()
 
+@inline indices(a::StaticArray) = _indices(Size(a))
+@inline indices(::Type{T}) where {T <: StaticArray} = _indices(Size(T))
+
+@pure function _indices(::Size{S}) where {S}
+    return map(s -> SUnitRange(1, s), S)
+end
+
 # Default type search for similar_type
 """
     similar_type(static_array)

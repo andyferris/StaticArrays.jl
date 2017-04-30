@@ -11,7 +11,9 @@ import Base: getindex, setindex!, size, similar, vec, show,
              fill!, det, inv, eig, eigvals, trace, vecnorm, norm, dot, diagm,
              sum, diff, prod, count, any, all, sumabs, sumabs2, minimum,
              maximum, extrema, mean, copy, rand, randn, randexp, rand!, randn!,
-             randexp!, normalize, normalize!
+             randexp!, normalize, normalize!, indices, first, endof, start, next, done
+
+import Base: ==
 
 export StaticScalar, StaticArray, StaticVector, StaticMatrix
 export Scalar, SArray, SVector, SMatrix
