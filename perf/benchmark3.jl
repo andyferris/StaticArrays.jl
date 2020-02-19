@@ -2,13 +2,12 @@ using StaticArrays
 using BenchmarkTools
 
 import BenchmarkTools: prettytime, prettymemory
+using Statistics: mean
 
 @noinline plus(a,b) = a+b
 @noinline plus!(c,a,b) = broadcast!(+, c, a, b)
 
 @noinline mul(a,b) = a*b
-@noinline mul!(c,a,b) = A_mul_B!(c, a, b)
-
 
 for T ∈ [Int64, Float64]
     for N ∈ [1,2,4,8,16,32,64,128,256]
@@ -62,7 +61,7 @@ for T ∈ [Int64, Float64]
         for m ∈ mutables
             result = mean(@benchmark mul!($(copy(m)), $(copy(m)), $(copy(m))))
             padding = maxnamelength - length(string(typeof(m).name.name))
-            println(typeof(m).name.name, ":", " " ^ padding, " A_mul_B!(m3, m1, m2) takes ", prettytime(time(result)), ", ", prettymemory(memory(result)), " (GC ", prettytime(gctime(result)) , ")")
+            println(typeof(m).name.name, ":", " " ^ padding, " mul!(m3, m1, m2) takes ", prettytime(time(result)), ", ", prettymemory(memory(result)), " (GC ", prettytime(gctime(result)) , ")")
         end
 
         println()

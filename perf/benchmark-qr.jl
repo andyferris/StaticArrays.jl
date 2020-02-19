@@ -1,5 +1,6 @@
 using StaticArrays
 using BenchmarkTools
+using LinearAlgebra: qr
 
 a = m = 0
 for K = 1:22

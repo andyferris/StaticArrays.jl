@@ -6,7 +6,7 @@ using StaticArrays
     using FixedSizeArrays
 end
 
-if !isdefined(:N)
+if !@isdefined(N)
     N = 4
 end
 
@@ -25,14 +25,14 @@ Az = SizedMatrix{N,N}(copy(A))
 end
 
 
-if !isdefined(:f_mut_marray) || !isdefined(:benchmark_suite) || benchmark_suite == false
+if !@isdefined(f_mut_marray) || !@isdefined(benchmark_suite) || benchmark_suite == false
     @generated f(n::Integer, A) = :(@inbounds (C = A; for i = 1:n; C = C*A; end; return C))
     @generated f_unrolled(n::Integer, A::Union{SMatrix{M,M},MMatrix{M,M}}) where {M} = :(@inbounds (C = A; for i = 1:n; C = StaticArrays.A_mul_B_unrolled(C,A); end; return C))
     @generated f_unrolled_chunks(n::Integer, A::Union{SMatrix{M,M},MMatrix{M,M}}) where {M} = :(@inbounds (C = A; for i = 1:n; C = StaticArrays.A_mul_B_unrolled_chunks(C,A); end; return C))
     @generated f_loop(n::Integer, A::Union{SMatrix{M,M},MMatrix{M,M}}) where {M} = :(@inbounds (C = A; for i = 1:n; C = StaticArrays.A_mul_B_loop(C,A); end; return C))
     @generated f_via_sarray(n::Integer, A::MMatrix{M,M}) where {M}= :(@inbounds (C = A; for i = 1:n; C = MMatrix{M,M}(SMatrix{M,M}(C)*SMatrix{M,M}(A)); end; return C))
-    @generated f_mut_array(n::Integer, A) = :(@inbounds (C = copy(A); tmp = similar(A); for i = 1:n;  A_mul_B!(tmp, C, A); map!(identity, C, tmp); end; return C))
-    @generated f_mut_marray(n::Integer, A) = :(@inbounds (C = similar(A); C[:] = A[:]; tmp = similar(A); for i = 1:n; StaticArrays.A_mul_B!(tmp, C, A); C.data = tmp.data; end; return C))
+    @generated f_mut_array(n::Integer, A) = :(@inbounds (C = copy(A); tmp = similar(A); for i = 1:n;  mul!(tmp, C, A); map!(identity, C, tmp); end; return C))
+    @generated f_mut_marray(n::Integer, A) = :(@inbounds (C = similar(A); C[:] = A[:]; tmp = similar(A); for i = 1:n; StaticArrays.mul!(tmp, C, A); C.data = tmp.data; end; return C))
     @generated f_mut_unrolled(n::Integer, A) = :(@inbounds (C = similar(A); C[:] = A[:]; tmp = similar(A); for i = 1:n; StaticArrays.A_mul_B_unrolled!(tmp, C, A); C.data = tmp.data; end; return C))
     @generated f_mut_chunks(n::Integer, A) = :(@inbounds (C = similar(A); C[:] = A[:]; tmp = similar(A); for i = 1:n; StaticArrays.A_mul_B_unrolled_chunks!(tmp, C, A); C.data = tmp.data; end; return C))
     @generated f_blas_marray(n::Integer, A) = :(@inbounds (C = similar(A); C[:] = A[:]; tmp = similar(A); for i = 1:n; StaticArrays.A_mul_B_blas!(tmp, C, A); C.data = tmp.data; end; return C))
@@ -43,8 +43,8 @@ if !isdefined(:f_mut_marray) || !isdefined(:benchmark_suite) || benchmark_suite 
 
     @noinline _det(x) = det(x)
     @noinline _inv(x) = inv(x)
-    @noinline _eig(x) = eig(x)
-    @noinline _chol(x) = chol(x)
+    @noinline _eig(x) = eigen(x)
+    @noinline _chol(x) = cholesky(x)
 
     f_det(n::Int, A) = (for i = 1:n; _det(A); end)
     f_inv(n::Int, A) = (for i = 1:n; _inv(A); end)
@@ -140,7 +140,7 @@ Cs::SMatrix
 if N <= 4; @assert Cs ≈ C; end
 Cm::MMatrix
 if N <= 4; @assert Cm ≈ C; end
-Cz::SizedMatrix
+Cz::SArray
 if N <= 4; @assert Cz ≈ C; end
 
 @static if fsa
@@ -170,21 +170,21 @@ if N <= 4; @assert Cz_mut ≈ C; end
 
 @static if all_methods
     println()
-    print("A_mul_B!(MMatrix, MMatrix) compilation time (unrolled):")
+    print("mul!(MMatrix, MMatrix) compilation time (unrolled):")
     @time eval(quote
         Cm_mut_unrolled = f_mut_unrolled(2, Am)
         Cm_mut_unrolled::MMatrix
         if N <= 4; @assert Cm_mut_unrolled ≈ C; end
     end)
 
-    print("A_mul_B!(MMatrix, MMatrix) compilation time (chunks):  ")
+    print("mul!(MMatrix, MMatrix) compilation time (chunks):  ")
     @time eval(quote
         Cm_mut_chunks = f_mut_chunks(2, Am)
         Cm_mut_chunks::MMatrix
         if N <= 4; @assert Cm_mut_chunks ≈ C; end
     end)
 
-    print("A_mul_B!(MMatrix, MMatrix) compilation time (BLAS):    ")
+    print("mul!(MMatrix, MMatrix) compilation time (BLAS):    ")
     @time eval(quote
         Cm_blas = f_blas_marray(2, Am)
         Cm_blas::MMatrix
@@ -224,7 +224,7 @@ Cm::MMatrix
 if N <= 4; @assert Cm == C; end
 Cm_mut::MMatrix
 if N <= 4; @assert Cm_mut == C; end
-Cz::SizedMatrix
+Cz::SMatrix
 if N <= 4; @assert Cz == C; end
 Cz_mut::SizedMatrix
 if N <= 4; @assert Cz_mut == C; end
