@@ -112,6 +112,28 @@ end
 
 @inline _mapreduce(args::Vararg{Any,N}) where N = _mapfoldl(args...)
 
+@generated function _mapreduce(f, op, dims::Colon, init, ::Size{S}, a::StaticArray...) where {S}
+    function op_expr(idx)
+        if length(idx) == 1
+            i, = idx
+            tmp = [:(a[$j][$i]) for j ∈ 1:length(a)]
+            expr = :(f($(tmp...)))
+            if init === _InitialValue
+                return :(Base.reduce_first(op, $expr))
+            else
+                return :(op(init, $expr))
+            end
+        end
+        left = op_expr(idx[1:end÷2])
+        right = op_expr(idx[end÷2+1:end])
+        return :(op($left, $right))
+    end
+    return quote
+        @_inline_meta
+        @inbounds return $(op_expr(1:prod(S)))
+    end
+end
+
 @generated function _mapfoldl(f, op, dims::Colon, init, ::Size{S}, a::StaticArray...) where {S}
     if prod(S) == 0
         if init === _InitialValue
