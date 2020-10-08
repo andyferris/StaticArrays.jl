@@ -15,11 +15,15 @@ import LinearAlgebra: BlasFloat, matprod, mul!
 @inline *(A::StaticArray{Tuple{N,1},<:Any,2}, B::Adjoint{<:Any,<:StaticVector}) where {N} = vec(A) * B
 @inline *(A::StaticArray{Tuple{N,1},<:Any,2}, B::Transpose{<:Any,<:StaticVector}) where {N} = vec(A) * B
 
+# Avoid LinearAlgebra._quad_matmul's order calculation on equal sizes
+@inline *(A::StaticMatrix{N,N}, B::StaticMatrix{N,N}, C::StaticMatrix{N,N}) where {N} = (A*B)*C
+@inline *(A::StaticMatrix{N,N}, B::StaticMatrix{N,N}, C::StaticMatrix{N,N}, D::StaticMatrix{N,N}) where {N} = ((A*B)*C)*D
+
 """
     mul_result_structure(a::Type, b::Type)
 
 Get a structure wrapper that should be applied to the result of multiplication of matrices
-of given types (a*b). 
+of given types (a*b).
 """
 function mul_result_structure(a, b)
     return identity
@@ -114,7 +118,6 @@ end
         b::Union{Transpose{Tb, <:StaticVector}, Adjoint{Tb, <:StaticVector}}) where {sa, sb, Ta, Tb}
     newsize = (sa[1], sb[2])
     exprs = [:(a[$i]*b[$j]) for i = 1:sa[1], j = 1:sb[2]]
-    
     return quote
         @_inline_meta
         T = promote_op(*, Ta, Tb)
@@ -209,7 +212,7 @@ end
         while m < M
             mu = min(M, m + M_r)
             mrange = m+1:mu
-            
+
             atemps_init = [:($(atemps[k1]) = a[$k1]) for k1 = mrange]
             exprs_init = [:($(tmps[k1,k2])  = $(atemps[k1]) * b[$(1 + (k2-1) * sb[1])]) for k1 = mrange, k2 = nrange]
             atemps_loop_init = [:($(atemps[k1]) = a[$(k1-sa[1]) + $(sa[1])*j]) for k1 = mrange]
