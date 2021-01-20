@@ -16,7 +16,7 @@ using Core.Compiler: return_type
 import Base: sqrt, exp, log
 using LinearAlgebra
 import LinearAlgebra: transpose, adjoint, dot, eigvals, eigen, lyap, tr,
-                      kron, diag, norm, dot, diagm, lu, svd, svdvals,
+                      kron, diag, norm, dot, diagm, lu, svd, svdvals, pinv
                       factorize, ishermitian, issymmetric, isposdef, issuccess, normalize,
                       normalize!, Eigen, det, logdet, logabsdet, cross, diff, qr, \
 using LinearAlgebra: checksquare
@@ -131,6 +131,7 @@ include("matrix_multiply.jl")
 include("lu.jl")
 include("det.jl")
 include("inv.jl")
+include("pinv.jl")
 include("solve.jl")
 include("eigen.jl")
 include("expm.jl")
