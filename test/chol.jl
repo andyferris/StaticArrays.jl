@@ -86,6 +86,28 @@ using LinearAlgebra: PosDefException
             @test (@inferred c \ v) isa SVector{3,elty}
             @test c \ v ≈ c_a \ v_a
         end
+
+        @testset "indefinite matrices" for i = 1:10
+            m_a = randn(elty, 5,5)
+            @test cholesky(SMatrix{5,5}(m_a), check=false).info == -1
+            @test !isposdef(SMatrix{5,5}(m_a))
+            m_a = m_a*m_a'
+
+            # Make the matrix indefinite
+            D,U = eigen(m_a)
+            D[1] = -10*eps(real(elty))
+            m_a = Hermitian(U*Diagonal(D)*U')
+            m = SMatrix{5,5}(m_a)
+
+            @test_throws PosDefException cholesky(m_a)
+            @test_throws PosDefException cholesky(m)
+            @test_throws PosDefException cholesky(Hermitian(m))
+            @test cholesky(m_a, check=false).info != 0 
+            @test cholesky(m, check=false).info != 0 
+            @test cholesky(Hermitian(m), check=false).info != 0 
+            @test !isposdef(m_a)
+            @test !isposdef(m)
+        end
     end
 
     @testset "static blockmatrix" for i = 1:10
@@ -95,4 +117,5 @@ using LinearAlgebra: PosDefException
         @test_broken cholesky(reshape([m, 0m, 0m, m], 2, 2)) ==
             reshape([chol(m), 0m, 0m, chol(m)], 2, 2)
     end
+
 end
