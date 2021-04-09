@@ -36,6 +36,7 @@ addtests("SDiagonal.jl")
 addtests("SHermitianCompact.jl")
 
 addtests("ambiguities.jl")
+addtests("unbound_args.jl")
 addtests("custom_types.jl")
 addtests("convert.jl")
 addtests("core.jl")

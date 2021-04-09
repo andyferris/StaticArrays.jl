@@ -126,7 +126,7 @@ When `a` is an instance or a concrete type the element type `eltype(a)` is
 used. However, when `a` is a `UnionAll` type such as `SMatrix{2,2}`, the
 promoted type of `elements` is used instead.
 """
-@inline function _construct_similar(a, s::Size, elements::NTuple{L,ET}) where {L,ET}
+@inline function _construct_similar(a, s::Size, elements::Tuple{ET,Vararg{ET,L}}) where {L,ET}
     similar_type(a, _eltype_or(a, ET), s)(elements)
 end
 

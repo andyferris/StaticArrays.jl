@@ -78,7 +78,7 @@ end
 end
 
 @inline SHermitianCompact{N}(a::Tuple) where {N} = SHermitianCompact{N, promote_tuple_eltype(a)}(a)
-@inline SHermitianCompact{N}(a::NTuple{M, T}) where {N, T, M} = SHermitianCompact{N, T}(a)
+@inline SHermitianCompact{N}(a::Tuple{T,Vararg{T,M}}) where {N, T, M} = SHermitianCompact{N, T}(a)
 @inline SHermitianCompact(a::StaticMatrix{N, N, T}) where {N, T} = SHermitianCompact{N, T}(a)
 
 @inline (::Type{SSC})(a::SHermitianCompact) where {SSC <: SHermitianCompact} = SSC(a.lowertriangle)

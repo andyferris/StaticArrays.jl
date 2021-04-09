@@ -193,8 +193,8 @@ istranspose(::TSize{<:Any,T}) where T = (T === :transpose)
 size(::TSize{S}) where S = S
 Size(::TSize{S}) where S = Size{S}()
 access_type(::TSize{<:Any,T}) where T = T
-Base.transpose(::TSize{S,:transpose}) where {S,T} = TSize{reverse(S),:any}()
-Base.transpose(::TSize{S,:any}) where {S,T} = TSize{reverse(S),:transpose}()
+Base.transpose(::TSize{S,:transpose}) where {S} = TSize{reverse(S),:any}()
+Base.transpose(::TSize{S,:any}) where {S} = TSize{reverse(S),:transpose}()
 
 # Get the parent of transposed arrays, or the array itself if it has no parent
 # Different from Base.parent because we only want to get rid of Transpose and Adjoint
