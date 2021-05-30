@@ -201,6 +201,16 @@ using StaticArrays, Test, LinearAlgebra
     end
 end
 
+@testset "permutedims" begin
+    @test @inferred(permutedims(SVector(1,2,3))) === SMatrix{1,3}(1,2,3)
+    @test @inferred(permutedims(MVector(1,2,3))) == MMatrix{1,3}(1,2,3)
+    @test @inferred(permutedims(MVector(1,2,3))) isa MMatrix{1,3}
+
+    @test @inferred(permutedims(SMatrix{2,2}(1,2,3,4))) === SMatrix{2,2}(1,3,2,4)
+    @test @inferred(permutedims(MMatrix{2,2}(1,2,3,4))) == MMatrix{2,2}(1,3,2,4)
+    @test @inferred(permutedims(MMatrix{2,2}(1,2,3,4))) isa MMatrix{2,2}
+end
+
 @testset "vcat() and hcat()" begin
     @test @inferred(vcat(SVector(1,2,3))) === SVector(1,2,3)
     @test @inferred(hcat(SVector(1,2,3))) === SMatrix{3,1}(1,2,3)

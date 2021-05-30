@@ -227,7 +227,15 @@ for rot in [:rotl90, :rotr90]
     end
 end
 
-# TODO permutedims?
+# TODO permutedims? So far just the cases without perm:
+
+@generated function Base.permutedims(A::SMatrix{M,N}) where {M,N}
+    exs = permutedims([:(getindex(A,$i,$j)) for i in 1:M, j in 1:N])
+    return :(SMatrix{M,N}($(exs...)))
+end
+
+Base.permutedims(A::SVector{N}) where {N} = SMatrix{1,N}(A.data...)
+Base.permutedims(A::MVector{N}) where {N} = MMatrix{1,N}(A.data...)
 
 #--------------------------------------------------
 # Concatenation
