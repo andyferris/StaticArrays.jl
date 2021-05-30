@@ -231,7 +231,7 @@ end
 
 @generated function Base.permutedims(A::SMatrix{M,N}) where {M,N}
     exs = permutedims([:(getindex(A,$i,$j)) for i in 1:M, j in 1:N])
-    return :(SMatrix{M,N}($(exs...)))
+    return :(SMatrix{N,M}($(exs...)))
 end
 
 Base.permutedims(A::SVector{N}) where {N} = SMatrix{1,N}(A.data...)

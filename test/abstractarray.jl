@@ -209,6 +209,9 @@ end
     @test @inferred(permutedims(SMatrix{2,2}(1,2,3,4))) === SMatrix{2,2}(1,3,2,4)
     @test @inferred(permutedims(MMatrix{2,2}(1,2,3,4))) == MMatrix{2,2}(1,3,2,4)
     @test @inferred(permutedims(MMatrix{2,2}(1,2,3,4))) isa MMatrix{2,2}
+
+    A = rand(2,3)
+    @test @inferred(permutedims(SMatrix{2,3}(A))) === SMatrix{3,2}(A')
 end
 
 @testset "vcat() and hcat()" begin
