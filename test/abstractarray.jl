@@ -119,6 +119,10 @@ using StaticArrays, Test, LinearAlgebra
         # IndexLinear
         @test reshape(view(ones(4, 4), 1, 1:4), Size(4, 1)) == SMatrix{4,1}(ones(4, 1))
         @test_throws DimensionMismatch reshape(view(ones(4,4), 1:4, 1:2), Size(5, 2))
+
+        s = SA[1,2];
+        s2 = @inferred reshape(s, axes(s,1), axes(s,2))
+        @test s2 isa StaticArray
     end
 
     @testset "copy" begin

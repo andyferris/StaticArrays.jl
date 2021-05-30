@@ -12,6 +12,7 @@ Base.axes(s::StaticArray) = _axes(Size(s))
 @pure function _axes(::Size{sizes}) where {sizes}
     map(SOneTo, sizes)
 end
+Base.axes(s::StaticArray, d) = d <= ndims(s) ? _axes(Size(s))[d] : SOneTo{1}()
 Base.axes(rv::Adjoint{<:Any,<:StaticVector})   = (SOneTo(1), axes(rv.parent)...)
 Base.axes(rv::Transpose{<:Any,<:StaticVector}) = (SOneTo(1), axes(rv.parent)...)
 
