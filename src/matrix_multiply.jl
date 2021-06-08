@@ -16,8 +16,8 @@ import LinearAlgebra: BlasFloat, matprod, mul!
 @inline *(A::StaticArray{Tuple{N,1},<:Any,2}, B::Transpose{<:Any,<:StaticVector}) where {N} = vec(A) * B
 
 # Avoid LinearAlgebra._quad_matmul's order calculation on equal sizes
-@inline *(A::StaticMatrix{N,N}, B::StaticMatrix{N,N}, C::StaticMatrix{N,N}) where {N} = (A*B)*C
-@inline *(A::StaticMatrix{N,N}, B::StaticMatrix{N,N}, C::StaticMatrix{N,N}, D::StaticMatrix{N,N}) where {N} = ((A*B)*C)*D
+@inline *(A::StaticMatMulLike{N,N}, B::StaticMatMulLike{N,N}, C::StaticMatMulLike{N,N}) where {N} = (A*B)*C
+@inline *(A::StaticMatMulLike{N,N}, B::StaticMatMulLike{N,N}, C::StaticMatMulLike{N,N}, D::StaticMatMulLike{N,N}) where {N} = ((A*B)*C)*D
 
 """
     mul_result_structure(a::Type, b::Type)
