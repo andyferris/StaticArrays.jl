@@ -114,6 +114,6 @@ macro SVector(ex)
             error("@SVector only supports the zeros(), ones(), rand(), randn() and randexp() functions.")
         end
     else
-        error("Use @SVector [a,b,c], @SVector Type[a,b,c] or a comprehension like [f(i) for i = i_min:i_max]")
+        error("Use @SVector [a,b,c], @SVector Type[a,b,c] or a comprehension like @SVector [f(i) for i = i_min:i_max]")
     end
 end
