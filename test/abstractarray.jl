@@ -92,7 +92,7 @@ using StaticArrays, Test, LinearAlgebra
         @test similar(v, SOneTo(3), SOneTo(4)) isa MMatrix{3,4,Int}
         @test similar(v, 3, SOneTo(4)) isa Matrix
 
-        @test m[:, 1:2] isa Matrix
+        @test m[:, 1:2] isa SMatrix{2, 2, Int}
         @test m[:, [true, false, false]] isa Matrix
         @test m[:, SOneTo(2)] isa SMatrix{2, 2, Int}
         @test m[:, :] isa SMatrix{2, 3, Int}

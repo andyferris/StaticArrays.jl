@@ -79,6 +79,45 @@ should_be_inlined(x) = x*x
 should_not_be_inlined(x) = _should_not_be_inlined(x)
 
 """
+    @test_const_fold f(args...)
+
+Test that constant folding works with a function call `f(args...)`.
+"""
+macro test_const_fold(ex)
+    quote
+        ci, = $(esc(:($InteractiveUtils.@code_typed optimize = true $ex)))
+        @test $(esc(ex)) == constant_return(ci)
+    end
+end
+
+struct NonConstantValue end
+
+function constant_return(ci)
+    if :rettype in fieldnames(typeof(ci))
+        ci.rettype isa Core.Compiler.Const && return ci.rettype.val
+        return NonConstantValue()
+    else
+        # for julia < 1.2
+        ex = ci.code[end]
+        Meta.isexpr(ex, :return) || return NonConstantValue()
+        val = ex.args[1]
+        return val isa QuoteNode ? val.value : val
+    end
+end
+
+@testset "@test_const_fold" begin
+    should_const_fold() = (1, 2, 3)
+    @test_const_fold should_const_fold()
+
+    x = Ref(1)
+    should_not_const_fold() = x[]
+    ts = @testset ErrorCounterTestSet "" begin
+        @test_const_fold should_not_const_fold()
+    end
+    @test ts.errorcount == 0 && ts.failcount == 1 && ts.passcount == 0
+end
+
+"""
     @inferred_maybe_allow allow ex
 
 Expands to `@inferred allow ex` on Julia 1.2 and newer and

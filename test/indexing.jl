@@ -237,4 +237,34 @@ using StaticArrays, Test
         @test eltype(Bvv) == Int
         @test Bvv[:] == [B[1,2,3,4], B[1,1,3,4]]
     end
+
+    @testset "Indexing with constants" begin
+        function SVector_UnitRange()
+            x = SA[1, 2, 3]
+            x[2:end]
+        end
+        @test SVector_UnitRange() === SA[2, 3]
+        VERSION ≥ v"1.2" && @test_const_fold SVector_UnitRange()
+
+        function SVector_StepRange()
+            x = SA[1, 2, 3, 4]
+            x[1:2:end]
+        end
+        @test SVector_StepRange() === SA[1, 3]
+        VERSION ≥ v"1.2" && @test_const_fold SVector_StepRange()
+
+        function SMatrix_UnitRange_UnitRange()
+            x = SA[1 2 3; 4 5 6]
+            x[1:2, 2:end]
+        end
+        @test SMatrix_UnitRange_UnitRange() === SA[2 3; 5 6]
+        VERSION ≥ v"1.2" && @test_const_fold SMatrix_UnitRange_UnitRange()
+
+        function SMatrix_StepRange_StepRange()
+            x = SA[1 2 3; 4 5 6]
+            x[1:1:2, 1:2:end]
+        end
+        @test SMatrix_StepRange_StepRange() === SA[1 3; 4 6]
+        VERSION ≥ v"1.2" && @test_const_fold SMatrix_StepRange_StepRange()
+    end
 end
