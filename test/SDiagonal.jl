@@ -123,5 +123,7 @@ using StaticArrays, Test, LinearAlgebra
 
         @test m + zero(m) == m
         @test m + zero(typeof(m)) == m
+
+        @test copy(m) === m
     end
 end

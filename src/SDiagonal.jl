@@ -61,3 +61,5 @@ function inv(D::SDiagonal)
     check_singular(D)
     SDiagonal(inv.(D.diag))
 end
+
+Base.copy(D::SDiagonal) = Diagonal(copy(diag(D)))
