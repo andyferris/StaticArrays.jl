@@ -173,6 +173,12 @@ mul_wrappers = [
         @test m*transpose(n) === @SMatrix [8 14; 18 32]
         @test transpose(m)*transpose(n) === @SMatrix [11 19; 16 28]
 
+        # 3- and 4-arg *
+        @test @inferred(m*n*m)  === @SMatrix [49 72; 109 160]
+        @test @inferred(m*n*m*n)  === @SMatrix [386 507; 858 1127]
+        @test @inferred(m*n'*UpperTriangular(m)) === @SMatrix [8 72; 18 164]
+        @test @inferred(Diagonal(m)*n*m'*transpose(n)) === @SMatrix [70 122; 496 864]
+
         # check different sizes because there are multiple implementations for matrices of different sizes
         for (mm, nn) in [
             (m, n),
