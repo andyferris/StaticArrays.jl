@@ -208,12 +208,12 @@ end
 
 #--------------------------------------------------
 # Norms
-function _inner_eltype(v::AbstractVector)
-    return eltype(v) <: AbstractVector ? _inner_eltype(first(v)) : eltype(v)
+function _inner_eltype(v::AbstractArray)
+    return eltype(v) <: AbstractArray ? _inner_eltype(first(v)) : eltype(v)
 end
 _inner_eltype(x::Number) = typeof(x)
-@inline _init_zero(v::AbstractVector) = zero(float(real(_inner_eltype(v))))
-@inline function LinearAlgebra.norm_sqr(v::StaticVector)
+@inline _init_zero(v::AbstractArray) = zero(float(real(_inner_eltype(v))))
+@inline function LinearAlgebra.norm_sqr(v::StaticArray)
     return mapreduce(LinearAlgebra.norm_sqr, +, v; init=_init_zero(v))
 end
 
