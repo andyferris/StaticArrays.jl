@@ -202,6 +202,44 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
         @test normalize(SVector(1,2,3), 1) ≈ normalize([1,2,3], 1)
         @test normalize!(MVector(1.,2.,3.)) ≈ normalize([1.,2.,3.])
         @test normalize!(MVector(1.,2.,3.), 1) ≈ normalize([1.,2.,3.], 1)
+
+        # nested vectors
+        a  = SA[SA[1, 2], SA[3, 4]]
+        a′ = convert(Vector{Vector{Int}}, a)
+        @test norm(a) ≈ norm(a′)
+        aa   = SVector(a,a)
+        a′a′ = [a′,a′]
+        @test norm(SA[a,a]) ≈ norm([a,a])
+        @test norm(SVector{0,Int}()) === norm(Vector{Float64}()) === 0.0
+
+        # do not overflow for Int
+        c = SA[typemax(Int)÷2, typemax(Int)÷3]
+        c′ = Vector(c)
+        @test norm(c) ≈ norm(Vector(c))
+        @test norm(SA[c,c]) ≈ norm([Vector(c), Vector(c)])
+
+        # 0-norm of vectors w/ zero-vectors
+        @test norm(SA[0,0], 0) == norm([0,0], 0)
+        @test norm(SA[[0,0],[1,1]], 0) == norm([[0,0],[1,1]], 0) == 1.0
+        @test norm(SA[[0,1],[1,1]], 0) == norm([[0,1],[1,1]], 0) == 2.0
+
+        # p-norms for nested vectors
+        @test norm(a, 2) ≈ norm(a′,2)
+        @test norm(a, Inf) ≈ norm(a′, Inf)
+        @test norm(a, 1) ≈ norm(a′, 1)
+        @test norm(a, 0) ≈ norm(a′, 0)
+
+        # type-stability
+        @test (@inferred norm(a[1])) == (@inferred norm(a[1], 2))
+        @test (@inferred norm(a)) == (@inferred norm(a, 2))
+        @test (@inferred norm(aa)) == (@inferred norm(aa, 2))
+        @test (@inferred norm(float.(aa))) == (@inferred norm(float.(aa), 2))
+
+        # norm of empty SVector
+        @test norm(SVector{0,Int}()) isa float(Int)
+        @test norm(SVector{0,Float64}()) isa Float64
+        @test norm(SA[SVector{0,Int}(),SVector{0,Int}()]) isa float(Int)
+        @test norm(SA[SVector{0,Int}(),SVector{0,Int}()]) == norm([Int[], Int[]])
     end
 
     @testset "trace" begin

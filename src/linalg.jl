@@ -208,17 +208,24 @@ end
 
 #--------------------------------------------------
 # Norms
-@inline LinearAlgebra.norm_sqr(v::StaticVector) = mapreduce(abs2, +, v; init=zero(real(eltype(v))))
+function _inner_eltype(v::AbstractVector)
+    return eltype(v) <: AbstractVector ? _inner_eltype(first(v)) : eltype(v)
+end
+_inner_eltype(x::Number) = typeof(x)
+@inline _init_zero(v::AbstractVector) = zero(float(real(_inner_eltype(v))))
+@inline function LinearAlgebra.norm_sqr(v::StaticVector)
+    return mapreduce(LinearAlgebra.norm_sqr, +, v; init=_init_zero(v))
+end
 
 @inline norm(a::StaticArray) = _norm(Size(a), a)
 @generated function _norm(::Size{S}, a::StaticArray) where {S}
     if prod(S) == 0
-        return :(zero(real(eltype(a))))
+        return :(_init_zero(a))
     end
 
-    expr = :(abs2(a[1]))
+    expr = :(LinearAlgebra.norm_sqr(a[1]))
     for j = 2:prod(S)
-        expr = :($expr + abs2(a[$j]))
+        expr = :($expr + LinearAlgebra.norm_sqr(a[$j]))
     end
 
     return quote
@@ -227,28 +234,28 @@ end
     end
 end
 
-_norm_p0(x) = x == 0 ? zero(x) : one(x)
+_norm_p0(x) = iszero(x) ? zero(float(_inner_eltype(x))) : one(float(_inner_eltype(x)))
 
 @inline norm(a::StaticArray, p::Real) = _norm(Size(a), a, p)
 @generated function _norm(::Size{S}, a::StaticArray, p::Real) where {S}
     if prod(S) == 0
-        return :(zero(real(eltype(a))))
+        return :(_init_zero(a))
     end
 
-    expr = :(abs(a[1])^p)
+    expr = :(norm(a[1])^p)
     for j = 2:prod(S)
-        expr = :($expr + abs(a[$j])^p)
+        expr = :($expr + norm(a[$j])^p)
     end
 
-    expr_p1 = :(abs(a[1]))
+    expr_p1 = :(norm(a[1]))
     for j = 2:prod(S)
-        expr_p1 = :($expr_p1 + abs(a[$j]))
+        expr_p1 = :($expr_p1 + norm(a[$j]))
     end
 
     return quote
         $(Expr(:meta, :inline))
         if p == Inf
-            return mapreduce(abs, max, a)
+            return mapreduce(norm, max, a)
         elseif p == 1
             @inbounds return $expr_p1
         elseif p == 2
