@@ -158,6 +158,9 @@ end
     end
 end
 
+@inline _mapreduce(f, op, D::Tuple{<:Any}, init, sz::Size{S}, a::StaticArray) where {S} =
+    _mapreduce(f, op, first(D), init, sz, a)
+
 @generated function _mapfoldl(f, op, dims::Val{D}, init,
                                ::Size{S}, a::StaticArray) where {S,D}
     N = length(S)
@@ -208,6 +211,14 @@ reduce(::typeof(hcat), A::StaticArray{<:Tuple,<:StaticVecOrMatLike}) =
 
 @inline _reduce(op, a::StaticArray, dims, init = _InitialValue()) =
     _mapreduce(identity, op, dims, init, Size(a), a)
+
+@inline function _reduce(op, a::StaticArray, dims::Tuple, init = _InitialValue())
+    b = _reduce(op, a, first(dims))
+    return _reduce(op, b, Base.tail(dims), init)
+end
+_reduce(op, a::StaticArray, dims::Tuple{}, ::_InitialValue) = a
+_reduce(op, a::StaticArray, dims::Tuple{}, init) = op.(init, a)
+
 
 ################
 ## (map)foldl ##
