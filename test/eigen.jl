@@ -75,23 +75,30 @@ using StaticArrays, Test, LinearAlgebra
         @test vals::SVector ≈ sort(m_d)
         @test eigvals(m_c) ≈ sort(m_d)
         @test eigvals(Hermitian(m_c)) ≈ sort(m_d)
-
-        # issue #523
-        for (i, j) in ((1, 2), (2, 1)), uplo in (:U, :L)
-            A = SMatrix{2,2,Float64}((i, 0, 0, j))
-            E = eigen(Symmetric(A, uplo))
-            @test eigvecs(E) * SDiagonal(eigvals(E)) * eigvecs(E)' ≈ A
-        end
-
-        m1_a = randn(2,2)
-        m1_a = m1_a*m1_a'
-        m1 = SMatrix{2,2}(m1_a)
-        m2_a = randn(2,2)
-        m2_a = m2_a*m2_a'
-        m2 = SMatrix{2,2}(m2_a)
-        @test (@inferred_maybe_allow SVector{2,ComplexF64} eigvals(m1, m2)) ≈ eigvals(m1_a, m2_a)
-        @test (@inferred_maybe_allow SVector{2,ComplexF64} eigvals(Symmetric(m1), Symmetric(m2))) ≈ eigvals(Symmetric(m1_a), Symmetric(m2_a))
     end
+
+    # issue #523, #694
+    zero = 0.0
+    smallest_non_zero = nextfloat(zero)
+    smallest_normal = floatmin(zero)
+    largest_subnormal = prevfloat(smallest_normal)
+    epsilon = eps(1.0)
+    one_p_epsilon = nextfloat(1.0)
+    degenerate = (zero, -1, 1, smallest_non_zero, smallest_normal, largest_subnormal, epsilon, one_p_epsilon, -one_p_epsilon)
+    @testset "2×2 degenerate cases" for (i, j, k) in Iterators.product(degenerate,degenerate,degenerate), uplo in (:U, :L)
+        A = SMatrix{2,2,Float64}((i, k, k, j))
+        E = eigen(Symmetric(A, uplo))
+        @test eigvecs(E) * SDiagonal(eigvals(E)) * eigvecs(E)' ≈ A
+    end
+
+    m1_a = randn(2,2)
+    m1_a = m1_a*m1_a'
+    m1 = SMatrix{2,2}(m1_a)
+    m2_a = randn(2,2)
+    m2_a = m2_a*m2_a'
+    m2 = SMatrix{2,2}(m2_a)
+    @test (@inferred_maybe_allow SVector{2,ComplexF64} eigvals(m1, m2)) ≈ eigvals(m1_a, m2_a)
+    @test (@inferred_maybe_allow SVector{2,ComplexF64} eigvals(Symmetric(m1), Symmetric(m2))) ≈ eigvals(Symmetric(m1_a), Symmetric(m2_a))
 
     @test_throws DimensionMismatch eigvals(SA[1 2 3; 4 5 6], SA[1 2 3; 4 5 5])
     @test_throws DimensionMismatch eigvals(SA[1 2; 4 5], SA[1 2 3; 4 5 5; 3 4 5])
