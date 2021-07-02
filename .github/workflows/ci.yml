@@ -19,6 +19,7 @@ jobs:
           - '1.2'
           - '1.3'
           - '1.4'
+          - '1.5'
           - 'nightly'
         os:
           - ubuntu-latest
@@ -36,9 +37,11 @@ jobs:
           - {os: 'macOS-latest', version: '1.1'}
           - {os: 'macOS-latest', version: '1.2'}
           - {os: 'macOS-latest', version: '1.3'}
+          - {os: 'macOS-latest', version: '1.4'}
           - {os: 'windows-latest', version: '1.1'}
           - {os: 'windows-latest', version: '1.2'}
           - {os: 'windows-latest', version: '1.3'}
+          - {os: 'windows-latest', version: '1.4'}
     steps:
       - uses: actions/checkout@v1
       - uses: julia-actions/setup-julia@latest
