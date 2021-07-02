@@ -280,3 +280,9 @@ function Base.view(
 end
 
 Base.elsize(::Type{<:MArray{S,T}}) where {S,T} = sizeof(T)
+
+function Base.show(io::IO, S::MArray)
+    print(io, typeof(S), "(")
+    show(io, Tuple(S))
+    print(io, ")")
+end

@@ -283,3 +283,9 @@ end
 function promote_rule(::Type{<:SArray{S,T,N,L}}, ::Type{<:SArray{S,U,N,L}}) where {S,T,U,N,L}
     SArray{S,promote_type(T,U),N,L}
 end
+
+function Base.show(io::IO, S::SArray)
+    print(io, typeof(S), "(")
+    show(io, Tuple(S))
+    print(io, ")")
+end

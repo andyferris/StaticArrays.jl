@@ -188,4 +188,18 @@
         v[] = 2
         @test v[] == 2
     end
+
+    @testset "show" begin
+        io = IOBuffer()
+
+        S = MVector{2,Float64}(1,2)
+        show(io, S)
+        S_str = String(take!(io))
+        @test S_str == "MVector{2, Float64}((1.0, 2.0))"
+
+        S = MMatrix{1, 2, Int, 2}(1, 2)
+        show(io, S)
+        S_str = String(take!(io))
+        @test S_str == "MMatrix{1, 2, $Int, 2}((1, 2))"
+    end
 end

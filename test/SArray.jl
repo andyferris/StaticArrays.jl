@@ -174,4 +174,17 @@
         @test @inferred(promote_type(SVector{2,Int}, SVector{2,Float64})) === SVector{2,Float64}
         @test @inferred(promote_type(SMatrix{2,3,Float32,6}, SMatrix{2,3,Complex{Float64},6})) === SMatrix{2,3,Complex{Float64},6}
     end
+
+    @testset "show" begin
+        io = IOBuffer()
+        S = SVector{2, Float64}(1, 2)
+        show(io, S)
+        S_str = String(take!(io))
+        @test S_str == "SVector{2, Float64}((1.0, 2.0))"
+
+        S = SMatrix{1, 2, Int, 2}(1, 2)
+        show(io, S)
+        S_str = String(take!(io))
+        @test S_str == "SMatrix{1, 2, $Int, 2}((1, 2))"
+    end
 end
