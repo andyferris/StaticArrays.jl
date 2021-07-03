@@ -203,6 +203,24 @@ using StaticArrays, Test, LinearAlgebra
     end
 end
 
+@testset "permutedims" begin
+    # vector -> one-row matrix
+    @test @inferred(permutedims(SVector(1,2,3))) === SMatrix{1,3}(1,2,3)
+    @test @inferred(permutedims(MVector(1,2,3))) isa MMatrix{1,3}
+    @test @inferred(permutedims(MVector(1,2,3))) == [1 2 3]
+    @test @inferred(permutedims(SizedVector{3}([1,2,3]))) isa SizedMatrix{1,3}
+    @test @inferred(permutedims(SizedVector{3}([1,2,3]))) == [1 2 3]
+
+    # matrix
+    @test @inferred(permutedims(SMatrix{2,2}(1,2,3,4))) === SMatrix{2,2}(1,3,2,4)
+    A = rand(2,3)
+    @test @inferred(permutedims(SMatrix{2,3}(A))) === SMatrix{3,2}(A')
+    @test @inferred(permutedims(MMatrix{2,3}(A))) isa MMatrix{3,2}
+    @test @inferred(permutedims(MMatrix{2,3}(A))) == A'
+    @test @inferred(permutedims(SizedMatrix{2,3}(A))) isa SizedMatrix{3,2}
+    @test @inferred(permutedims(SizedMatrix{2,3}(A))) == A'
+end
+
 @testset "vcat() and hcat()" begin
     @test @inferred(vcat(SVector(1,2,3))) === SVector(1,2,3)
     @test @inferred(hcat(SVector(1,2,3))) === SMatrix{3,1}(1,2,3)
