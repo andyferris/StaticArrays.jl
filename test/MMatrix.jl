@@ -94,24 +94,4 @@
 
         @test reverse(m) == reverse(reverse(collect(m), dims = 2), dims = 1)
     end
-
-    @testset "setindex!" begin
-        m = @MMatrix [0 0; 0 0]
-        m[1] = 11
-        m[2] = 12
-        m[3] = 13
-        m[4] = 14
-        @test m.data === (11, 12, 13, 14)
-
-        m = @MMatrix [0 0; 0 0]
-        m[1] = Int8(11)
-        m[2] = Int8(12)
-        m[3] = Int8(13)
-        m[4] = Int8(14)
-        @test m.data === (11, 12, 13, 14)
-
-        # setindex with non-elbits type
-        m = MMatrix{2,2,String}(undef)
-        @test_throws ErrorException setindex!(m, "a", 1, 1)
-    end
 end

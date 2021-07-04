@@ -94,9 +94,12 @@ end
     if isbitstype(T)
         GC.@preserve v unsafe_store!(Base.unsafe_convert(Ptr{T}, pointer_from_objref(v)), convert(T, val), i)
     else
-        # This one is unsafe (#27)
-        # unsafe_store!(Base.unsafe_convert(Ptr{Ptr{Nothing}}, pointer_from_objref(v.data)), pointer_from_objref(val), i)
-        error("setindex!() with non-isbitstype eltype is not supported by StaticArrays. Consider using SizedArray.")
+        # This is inherently slow because we've got to rebuild a new Tuple to
+        # reassign to data.v.
+        #
+        # However it seems not possible to make fast, at least in julia 1.4
+        # TODO: Revisit if https://github.com/JuliaLang/julia/pull/34126 is merged
+        @inbounds v.data = setindex(v.data, val, i)
     end
 
     return v
