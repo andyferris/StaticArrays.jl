@@ -38,6 +38,7 @@ export @MVector, @MMatrix, @MArray
 
 export similar_type
 export push, pop, pushfirst, popfirst, insert, deleteat, setindex
+export packdims, unpackdims, unsafe_packdims, unsafe_unpackdims
 
 include("SOneTo.jl")
 
