@@ -377,3 +377,29 @@ Base.unsafe_view(A::AbstractArray, i1::StaticIndexing, indices::StaticIndexing..
 # the tuple indices has to have at least one element to prevent infinite
 # recursion when viewing a zero-dimensional array (see issue #705)
 Base.SubArray(A::AbstractArray, indices::Tuple{StaticIndexing, Vararg{StaticIndexing}}) = Base.SubArray(A, map(unwrap, indices))
+
+###########################################################
+# SDiagonal
+###########################################################
+
+# SDiagonal uses Cartesian indexing, and the canonical indexing methods shadow getindex for Diagonal
+# these are needed for ambiguity resolution
+@inline function getindex(D::SDiagonal, i::Int, j::Int)
+    @boundscheck checkbounds(D, i, j)
+    if i == j
+        @inbounds r = diag(D)[i]
+    else
+        r = LinearAlgebra.diagzero(D, i, j)
+    end
+    r
+end
+@inline function getindex(D::SDiagonal, i::Int...)
+    @boundscheck checkbounds(D, i...)
+    @inbounds r = D[eachindex(D)[i...]]
+    r
+end
+# Ensure that vector indexing with static types lead to SArrays
+@propagate_inbounds function getindex(a::SDiagonal, inds::Union{Int, StaticArray{<:Tuple, Int}, SOneTo, Colon}...)
+    ar = reshape(a, Val(length(inds)))
+    _getindex(ar, index_sizes(Size(ar), inds...), inds)
+end

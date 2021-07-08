@@ -70,6 +70,15 @@ using StaticArrays, Test, LinearAlgebra
 
         @test length(m) === 4*4
 
+        m2 = SMatrix{4,4}(m)
+        @test axes(m) === axes(m2)
+        @test axes(m, 1) === axes(m2, 1)
+        @test axes(m, 3) == SOneTo(1)
+
+        @test m[:, 1] === SVector{4}(m[1,1], 0, 0, 0)
+        @test m[:, :] === m2
+        @test m[2, 2, 1] === m[2, 2]
+
         @test_throws Exception m[1] = 1
 
         b = @SVector [2,-1,2,1]
@@ -114,5 +123,7 @@ using StaticArrays, Test, LinearAlgebra
 
         @test m + zero(m) == m
         @test m + zero(typeof(m)) == m
+
+        @test copy(m) === m
     end
 end

@@ -17,6 +17,11 @@ SDiagonal(a::StaticMatrix{N,N,T}) where {N,T} = Diagonal(diag(a))
 size(::Type{<:SDiagonal{N}}) where {N} = (N,N)
 size(::Type{<:SDiagonal{N}}, d::Int) where {N} = d > 2 ? 1 : N
 
+Base.axes(D::SDiagonal) = (ax = axes(diag(D), 1); (ax, ax))
+Base.axes(D::SDiagonal, d) = d <= 2 ? axes(D)[d] : SOneTo(1)
+
+Base.reshape(a::SDiagonal, s::Tuple{SOneTo,Vararg{SOneTo}}) = reshape(a, homogenize_shape(s))
+
 # define specific methods to avoid allocating mutable arrays
 \(D::SDiagonal, b::AbstractVector) = D.diag .\ b
 \(D::SDiagonal, b::StaticVector) = D.diag .\ b # catch ambiguity
@@ -56,3 +61,5 @@ function inv(D::SDiagonal)
     check_singular(D)
     SDiagonal(inv.(D.diag))
 end
+
+Base.copy(D::SDiagonal) = Diagonal(copy(diag(D)))
