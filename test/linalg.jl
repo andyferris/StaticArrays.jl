@@ -230,10 +230,14 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
         @test norm(a, 0) ≈ norm(a′, 0)
 
         # type-stability
-        @test (@inferred norm(a[1])) == (@inferred norm(a[1], 2))
-        @test (@inferred norm(a)) == (@inferred norm(a, 2))
-        @test (@inferred norm(aa)) == (@inferred norm(aa, 2))
-        @test (@inferred norm(float.(aa))) == (@inferred norm(float.(aa), 2))
+        if VERSION ≥ v"1.2"
+            # only test strict type-stability on v1.2+, since there were Base-related type
+            # instabilities in `norm` prior to https://github.com/JuliaLang/julia/pull/30481
+            @test (@inferred norm(a[1])) == (@inferred norm(a[1], 2))
+            @test (@inferred norm(a)) == (@inferred norm(a, 2))
+            @test (@inferred norm(aa)) == (@inferred norm(aa, 2))
+            @test (@inferred norm(float.(aa))) == (@inferred norm(float.(aa), 2))
+        end
 
         # norm of empty SVector
         @test norm(SVector{0,Int}()) isa float(Int)
