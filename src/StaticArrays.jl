@@ -16,7 +16,7 @@ using Core.Compiler: return_type
 import Base: sqrt, exp, log
 using LinearAlgebra
 import LinearAlgebra: transpose, adjoint, dot, eigvals, eigen, lyap, tr,
-                      kron, diag, norm, dot, diagm, lu, svd, svdvals,
+                      kron, diag, norm, dot, diagm, lu, svd, svdvals, pinv,
                       factorize, ishermitian, issymmetric, isposdef, issuccess, normalize,
                       normalize!, Eigen, det, logdet, logabsdet, cross, diff, qr, \
 using LinearAlgebra: checksquare
@@ -143,6 +143,7 @@ include("qr.jl")
 include("deque.jl")
 include("flatten.jl")
 include("io.jl")
+include("pinv.jl")
 
 if Base.VERSION >= v"1.4.2"
     include("precompile.jl")
