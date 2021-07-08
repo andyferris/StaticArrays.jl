@@ -120,6 +120,10 @@ Use of `similar` will fall back to a mutable container, such as a `MVector`
 static size (or else a dynamically sized `Array` will be generated when
 specifying the size as plain integers).
 
+### Collecting directly into static arrays
+
+You can collect [iterators](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-iteration) into static arrays directly with [`StaticArrays.sacollect`](@ref). The size needs to be specified, but the element type is optional.
+
 ### Mutable arrays: `MVector`, `MMatrix` and `MArray`
 
 These statically sized arrays are identical to the above, but are defined as
