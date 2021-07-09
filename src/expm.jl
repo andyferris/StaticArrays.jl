@@ -69,7 +69,7 @@ function _exp(::Size, _A::StaticMatrix{<:Any,<:Any,T}) where T
     S = typeof((zero(T)*zero(T) + zero(T)*zero(T))/one(T))
     A = S.(_A)
     # omitted: matrix balancing, i.e., LAPACK.gebal!
-    nA = maximum(sum(abs.(A); dims=Val(1)))    # marginally more performant than norm(A, 1)
+    nA = opnorm(A, 1)
     ## For sufficiently small nA, use lower order Padé-Approximations
     if (nA <= 2.1)
         A2 = A*A
