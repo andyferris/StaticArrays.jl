@@ -205,16 +205,15 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
 
         # nested vectors
         a  = SA[SA[1, 2], SA[3, 4]]
-        a′ = convert(Vector{Vector{Int}}, a)
-        @test norm(a) ≈ norm(a′)
-        aa   = SVector(a,a)
-        a′a′ = [a′,a′]
-        @test norm(SA[a,a]) ≈ norm([a,a])
+        av = convert(Vector{Vector{Int}}, a)
+        aa = SA[a,a]
+        @test norm(a) ≈ norm(av)
+        @test norm(aa) ≈ norm([a,a])
+        @test norm(aa) ≈ norm([av,av])
         @test norm(SVector{0,Int}()) === norm(Vector{Float64}()) === 0.0
 
         # do not overflow for Int
         c = SA[typemax(Int)÷2, typemax(Int)÷3]
-        c′ = Vector(c)
         @test norm(c) ≈ norm(Vector(c))
         @test norm(SA[c,c]) ≈ norm([Vector(c), Vector(c)])
 
@@ -223,11 +222,19 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
         @test norm(SA[[0,0],[1,1]], 0) == norm([[0,0],[1,1]], 0) == 1.0
         @test norm(SA[[0,1],[1,1]], 0) == norm([[0,1],[1,1]], 0) == 2.0
 
+        # complex numbers
+        @test norm(SA[1+im, 2+3im]) ≈ norm([1+im, 2+3im])
+        @test norm(SA[22.0+0.1im, 2.0-23.0im]) ≈ norm([22.0+0.1im, 2.0-23.0im])
+        a_c, av_c = a+1im*a, av+1im*av
+        @test norm(a_c) ≈ norm(av_c)
+
         # p-norms for nested vectors
-        @test norm(a, 2) ≈ norm(a′,2)
-        @test norm(a, Inf) ≈ norm(a′, Inf)
-        @test norm(a, 1) ≈ norm(a′, 1)
-        @test norm(a, 0) ≈ norm(a′, 0)
+        for (x,xv) in ((a,av), (a_c, av_c))
+            @test norm(x, 2) ≈ norm(xv,2)
+            @test norm(x, Inf) ≈ norm(xv, Inf)
+            @test norm(x, 1) ≈ norm(xv, 1)
+            @test norm(x, 0) ≈ norm(xv, 0)
+        end
 
         # type-stability
         if VERSION ≥ v"1.2"
@@ -237,6 +244,7 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
             @test (@inferred norm(a)) == (@inferred norm(a, 2))
             @test (@inferred norm(aa)) == (@inferred norm(aa, 2))
             @test (@inferred norm(float.(aa))) == (@inferred norm(float.(aa), 2))
+            @test (@inferred norm(SVector{0,Int}())) == (@inferred norm(SVector{0,Int}(), 2))
         end
 
         # norm of empty SVector

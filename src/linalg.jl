@@ -234,7 +234,10 @@ end
     end
 end
 
-_norm_p0(x) = iszero(x) ? zero(float(_inner_eltype(x))) : one(float(_inner_eltype(x)))
+function _norm_p0(x)
+    T = float(real(_inner_eltype(x)))
+    return iszero(x) ? zero(T) :  one(T)
+end
 
 @inline norm(a::StaticArray, p::Real) = _norm(Size(a), a, p)
 @generated function _norm(::Size{S}, a::StaticArray, p::Real) where {S}
