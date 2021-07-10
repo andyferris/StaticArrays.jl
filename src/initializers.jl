@@ -59,3 +59,17 @@ end
 @inline Base.typed_hvcat(sa::Type{SA}, rows::Dims, xs::Number...)            = _SA_typed_hvcat(sa, rows, xs)
 @inline Base.typed_hvcat(sa::Type{SA{T}}, rows::Dims, xs::Number...) where T = _SA_typed_hvcat(sa, rows, xs)
 
+@generated function _SA_typed_hvcat(::Type{sa}, ::Val{rows}, xs) where {sa,rows}
+    M = rows[1]
+    if any(r->r != M, rows)
+        # @pure may not throw... probably. See
+        # https://discourse.julialang.org/t/can-pure-functions-throw-an-error/18459
+        return :(throw(ArgumentError("SA[...] matrix rows of length $_rows are inconsistent")))
+    end
+    msize = Size(M, length(rows))
+    # hvcat lowering is row major ordering, so we must transpose
+    :(Base.@_inline_meta; transpose($(similar_type(sa, msize))(xs)))
+end
+
+@inline Base.typed_hvcat(sa::Type{SA}, rows::Val{_rows}, xs::Number...) where {_rows} = _SA_typed_hvcat(sa, rows, xs)
+@inline Base.typed_hvcat(sa::Type{SA{T}}, rows::Val{_rows}, xs::Number...) where {T,_rows} = _SA_typed_hvcat(sa, rows, xs)
