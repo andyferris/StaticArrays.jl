@@ -9,6 +9,7 @@ const Scalar{T} = SArray{Tuple{},T,0,1}
 @inline Scalar(x::Tuple{T}) where {T} = Scalar{T}(x[1])
 @inline Scalar(a::AbstractArray) = Scalar{typeof(a)}((a,))
 @inline Scalar(a::AbstractScalar) = Scalar{eltype(a)}((a[],)) # Do we want this to convert or wrap?
+@inline Scalar(a::SA) where {SA<:StaticArray} = Scalar{SA}(a) # solve ambiguity
 @inline function convert(::Type{SA}, a::AbstractArray) where {SA <: Scalar}
     return SA((a[],))
 end
