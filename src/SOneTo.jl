@@ -34,6 +34,16 @@ end
     @boundscheck checkbounds(s, s2)
     return s2
 end
+if isdefined(Base, :IdentityUnitRange)
+    @propagate_inbounds function Base.getindex(s::SOneTo, s2::Base.IdentityUnitRange{<:AbstractUnitRange{<:Integer}})
+        @boundscheck checkbounds(s, s2)
+        return s2
+    end
+    Base.axes(::Base.IdentityUnitRange{A}) where {A <: SOneTo} = (A(),)
+    Base.axes(r::Base.IdentityUnitRange{<:SOneTo}, d::Int) = d <= 1 ? axes(r)[d] : SOneTo(1)
+    Base.axes1(r::Base.IdentityUnitRange{A}) where {A <: SOneTo} = A()
+    Base.unsafe_indices(::Base.IdentityUnitRange{A}) where {A <: SOneTo} = (A(),)
+end
 
 Base.first(::SOneTo) = 1
 Base.last(::SOneTo{n}) where {n} = n::Int

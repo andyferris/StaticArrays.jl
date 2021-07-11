@@ -12,6 +12,11 @@ using StaticArrays, Test
 
         # SArray
         @test (@inferred getindex(sv, SMatrix{2,2}(1,4,2,3))) === SMatrix{2,2}(4,7,5,6)
+
+        @test (@inferred getindex(sv, axes(sv, 1))) === sv
+        if isdefined(Base, :IdentityUnitRange)
+            @test (@inferred getindex(sv, Base.IdentityUnitRange(axes(sv, 1)))) === sv
+        end
     end
 
     @testset "Linear getindex() on SMatrix" begin
@@ -21,6 +26,14 @@ using StaticArrays, Test
         # SVector
         @test (@inferred getindex(sm, SVector(4,3,2,1))) === SVector((7,6,5,4))
 
+        # SOneTo
+        @test (@inferred getindex(sm, SOneTo(length(sm)))) === sv
+
+        # IdentityUnitRange{<:SOneTo}
+        if isdefined(Base, :IdentityUnitRange)
+            @test (@inferred getindex(sm, Base.IdentityUnitRange(SOneTo(length(sm))))) === sv
+        end
+
         # Colon
         @test (@inferred getindex(sm,:)) === sv
 
@@ -29,49 +42,77 @@ using StaticArrays, Test
     end
 
     @testset "Linear getindex()/setindex!() on MVector" begin
-        vec = @SVector [4,5,6,7]
+        sv = @SVector [4,5,6,7]
 
         # SVector
-        mv = MVector{4,Int}(undef)
-        @test (mv[SVector(1,2,3,4)] = vec; (@inferred getindex(mv, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
-        @test setindex!(mv, vec, SVector(1,2,3,4)) === mv
+        mvec = MVector{4,Int}(undef)
+        @test (mvec[SVector(1,2,3,4)] = sv; (@inferred getindex(mvec, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
+        @test setindex!(mvec, sv, SVector(1,2,3,4)) === mvec
 
-        mv = MVector{4,Int}(undef)
-        @test (mv[SVector(1,2,3,4)] = [4, 5, 6, 7]; (@inferred getindex(mv, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
-        @test (mv[SVector(1,2,3,4)] = 2; (@inferred getindex(mv, SVector(4,3,2,1)))::MVector{4,Int} == MVector((2,2,2,2)))
+        mvec = MVector{4,Int}(undef)
+        @test (mvec[SVector(1,2,3,4)] = [4, 5, 6, 7]; (@inferred getindex(mvec, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
+        @test (mvec[SVector(1,2,3,4)] = 2; (@inferred getindex(mvec, SVector(4,3,2,1)))::MVector{4,Int} == MVector((2,2,2,2)))
 
-        mv = MVector(0,0,0)
-        @test (mv[SVector(1,3)] = [4, 5]; (@inferred mv == MVector(4,0,5)))
+        mvec = MVector(0,0,0)
+        @test (mvec[SVector(1,3)] = [4, 5]; (@inferred mvec == MVector(4,0,5)))
 
-        mv = MVector(0,0,0)
-        @test (mv[SVector(1,3)] = SVector(4, 5); (@inferred mv == MVector(4,0,5)))
+        mvec = MVector(0,0,0)
+        @test (mvec[SVector(1,3)] = SVector(4, 5); (@inferred mvec == MVector(4,0,5)))
 
-        mv = MVector(0,0,0)
-        @test (mv[SMatrix{2,1}(1,3)] = SMatrix{2,1}(4, 5); (@inferred mv == MVector(4,0,5)))
+        mvec = MVector(0,0,0)
+        @test (mvec[SMatrix{2,1}(1,3)] = SMatrix{2,1}(4, 5); (@inferred mvec == MVector(4,0,5)))
 
         # Colon
-        mv = MVector{4,Int}(undef)
-        @test (mv[:] = vec; (@inferred getindex(mv, :))::MVector{4,Int} == MVector((4,5,6,7)))
-        @test (mv[:] = [4, 5, 6, 7]; (@inferred getindex(mv, :))::MVector{4,Int} == MVector((4,5,6,7)))
-        @test (mv[:] = 2; (@inferred getindex(mv, :))::MVector{4,Int} == MVector((2,2,2,2)))
-        @test setindex!(mv, 2, :) === mv
+        mvec = MVector{4,Int}(undef)
+        @test (mvec[:] = sv; (@inferred getindex(mvec, :))::MVector{4,Int} == MVector((4,5,6,7)))
+        @test (mvec[:] = [4, 5, 6, 7]; (@inferred getindex(mvec, :))::MVector{4,Int} == MVector((4,5,6,7)))
+        @test (mvec[:] = 2; (@inferred getindex(mvec, :))::MVector{4,Int} == MVector((2,2,2,2)))
+        @test setindex!(mvec, 2, :) === mvec
 
-        @test_throws DimensionMismatch setindex!(mv, SVector(1,2,3), SVector(1,2,3,4))
-        @test_throws DimensionMismatch setindex!(mv, SVector(1,2,3), :)
-        @test_throws DimensionMismatch setindex!(mv, view(ones(8), 1:5), :)
-        @test_throws DimensionMismatch setindex!(mv, [1,2,3], SVector(1,2,3,4))
+        # SOneTo
+        @test begin
+            mvec[SOneTo(length(mvec))] = sv
+            (@inferred mvec[SOneTo(length(mvec))]) == sv
+        end
+
+        # IdentityUnitRange{<:SOneTo}
+        if isdefined(Base, :IdentityUnitRange)
+            @test begin
+                mvec[Base.IdentityUnitRange(SOneTo(length(mvec)))] = sv
+                (@inferred mvec[Base.IdentityUnitRange(SOneTo(length(mvec)))]) == sv
+            end
+        end
+
+        @test_throws DimensionMismatch setindex!(mvec, SVector(1,2,3), SVector(1,2,3,4))
+        @test_throws DimensionMismatch setindex!(mvec, SVector(1,2,3), :)
+        @test_throws DimensionMismatch setindex!(mvec, view(ones(8), 1:5), :)
+        @test_throws DimensionMismatch setindex!(mvec, [1,2,3], SVector(1,2,3,4))
     end
 
     @testset "Linear getindex()/setindex!() on MMatrix" begin
-        vec = @SVector [4,5,6,7]
+        sv = @SVector [4,5,6,7]
 
         # SVector
         mm = MMatrix{2,2,Int}(undef)
-        @test (mm[SVector(1,2,3,4)] = vec; (@inferred getindex(mm, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
+        @test (mm[SVector(1,2,3,4)] = sv; (@inferred getindex(mm, SVector(4,3,2,1)))::MVector{4,Int} == MVector((7,6,5,4)))
 
         # Colon
         mm = MMatrix{2,2,Int}(undef)
-        @test (mm[:] = vec; (@inferred getindex(mm, :))::MVector{4,Int} == MVector((4,5,6,7)))
+        @test (mm[:] = sv; (@inferred getindex(mm, :))::MVector{4,Int} == MVector((4,5,6,7)))
+
+        # SOneTo
+        @test begin
+            mm[SOneTo(length(mm))] = sv
+            (@inferred mm[SOneTo(length(mm))]) == sv
+        end
+
+        # IdentityUnitRange{<:SOneTo}
+        if isdefined(Base, :IdentityUnitRange)
+            @test begin
+                mm[Base.IdentityUnitRange(SOneTo(length(mm)))] = sv
+                (@inferred mm[Base.IdentityUnitRange(SOneTo(length(mm)))]) == sv
+            end
+        end
 
         # SMatrix
         mm = MMatrix{2,2,Int}(undef)
@@ -96,6 +137,12 @@ using StaticArrays, Test
         @test v[2,1] == 2
         @test_throws BoundsError v[1,2]
         @test_throws BoundsError v[3,1]
+
+        # SOneTo
+        @test (@inferred v[axes(v,1), SOneTo(1)]) === SMatrix{2,1}(v)
+        @test v[axes(v,1), SOneTo(1)] == v[Base.OneTo(length(v)), Base.OneTo(1)]
+        @test (@inferred v[axes(v,1), 1, SOneTo(1)]) === SMatrix{2,1}(v)
+        @test v[axes(v,1), 1, SOneTo(1)] == v[Base.OneTo(length(v)), 1, Base.OneTo(1)]
     end
 
     @testset "2D getindex() on SMatrix" begin
@@ -122,6 +169,13 @@ using StaticArrays, Test
         # SOneTo
         @testinf sm[SOneTo(1),:] === @SMatrix [1 3]
         @testinf sm[:,SOneTo(1)] === @SMatrix [1;2]
+
+        # IdentityUnitRange{<:SOneTo}
+        if isdefined(Base, :IdentityUnitRange)
+            @test (@inferred sm[Base.IdentityUnitRange(axes(sm, 1)), :]) === sm
+            @test (@inferred sm[Base.IdentityUnitRange(axes(sm, 1)), SOneTo(1)]) === SMatrix{2,1}(sm[:,1])
+            @test (@inferred sm[Base.IdentityUnitRange(axes(sm, 1)), SVector{1}(SOneTo(1))]) === SMatrix{2,1}(sm[:,1])
+        end
     end
 
     @testset "2D getindex()/setindex! on MMatrix" begin
@@ -142,6 +196,18 @@ using StaticArrays, Test
         # SOneTo
         @test (mm = MMatrix{2,2,Int}(undef); mm[SOneTo(1),:] = sm[SOneTo(1),:]; (@inferred getindex(mm, SOneTo(1), :))::MMatrix == @MMatrix [1 3])
         @test (mm = MMatrix{2,2,Int}(undef); mm[:,SOneTo(1)] = sm[:,SOneTo(1)]; (@inferred getindex(mm, :, SOneTo(1)))::MMatrix == @MMatrix [1;2])
+
+        # IdentityUnitRange{<:SOneTo}
+        if isdefined(Base, :IdentityUnitRange)
+            @test begin
+                mm = MMatrix{2,2,Int}(undef);
+                mm[map(Base.IdentityUnitRange, axes(mm))...] = sm
+                (@inferred mm[map(Base.IdentityUnitRange, axes(mm))...]) == mm
+                (@inferred mm[Base.IdentityUnitRange(axes(mm,1)), :]) == mm
+                (@inferred mm[Base.IdentityUnitRange(axes(mm,1)), axes(mm,2)]) == mm
+                (@inferred mm[Base.IdentityUnitRange(axes(mm,1)), SVector{2}(axes(mm,2))]) == mm
+            end
+        end
 
         # #866
         @test_throws DimensionMismatch setindex!(MMatrix(SA[1 2; 3 4]), SA[3,4], 1, SA[1,2,3])
@@ -187,6 +253,29 @@ using StaticArrays, Test
         @test (@inferred getindex(a, 1, 1, SVector(1,2), 1)) == [24,32]
         @test (@inferred getindex(a, 1, SVector(1,2), 1, 1)) == [24,36]
         @test (@inferred getindex(a, SVector(1,2), 1, 1, 1)) == [24,48]
+    end
+
+    @testset "indexing with reshape for SMatrix/MMatrix" begin
+        sm = @SMatrix [1 3; 2 4]
+        mm = @MMatrix [1 3; 2 4]
+        for m in Any[sm, mm, view(sm, :, :), view(mm, :, :)]
+            sa = @inferred m[:, SOneTo(1), 1, SOneTo(1)]
+            a =  m[:, Base.OneTo(1), 1, Base.OneTo(1)]
+            @test sa == a
+            @test sa == SArray{Tuple{2,1,1}}(a)
+            if m isa SArray
+                @test sa === SArray{Tuple{2,1,1}}(a)
+            end
+
+            if isdefined(Base, :IdentityUnitRange)
+                sa = @inferred m[:, Base.IdentityUnitRange(SOneTo(1)), 1, SOneTo(1)]
+                @test sa == a
+                @test sa == SArray{Tuple{2,1,1}}(a)
+                if m isa SArray
+                    @test sa === SArray{Tuple{2,1,1}}(a)
+                end
+            end
+        end
     end
 
     @testset "Indexing with empty vectors" begin
