@@ -234,6 +234,7 @@ StaticArrays.similar_type(::Union{RotMat2,Type{RotMat2}}) = SMatrix{2,2,Float64,
             @test norm(x, Inf) ≈ norm(xv, Inf)
             @test norm(x, 1) ≈ norm(xv, 1)
             @test norm(x, 0) ≈ norm(xv, 0)
+            @test norm(SA[Int[], [1,2]], 0) ≈ norm([Int[], [1,2]], 0)
         end
 
         # type-stability

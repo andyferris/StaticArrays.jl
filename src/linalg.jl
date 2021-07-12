@@ -208,11 +208,13 @@ end
 
 #--------------------------------------------------
 # Norms
-function _inner_eltype(v::AbstractArray)
-    return eltype(v) <: AbstractArray ? _inner_eltype(first(v)) : eltype(v)
+function _inner_eltype(v::StaticArray)
+    isempty(v) && return float(norm(zero(eltype(v))))
+    return _inner_eltype(first(v))
 end
 _inner_eltype(x::Number) = typeof(x)
-@inline _init_zero(v::AbstractArray) = zero(float(real(_inner_eltype(v))))
+@inline _init_zero(v::StaticArray) = float(norm(zero(_inner_eltype(v))))
+
 @inline function LinearAlgebra.norm_sqr(v::StaticArray)
     return mapreduce(LinearAlgebra.norm_sqr, +, v; init=_init_zero(v))
 end
@@ -235,7 +237,7 @@ end
 end
 
 function _norm_p0(x)
-    T = float(real(_inner_eltype(x)))
+    T = isempty(x) ? eltype(x) : float(norm(zero(first(x))))
     return iszero(x) ? zero(T) :  one(T)
 end
 
